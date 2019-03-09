@@ -1,73 +1,129 @@
 const calculator = document.querySelector('.calculator');
 const keys = calculator.querySelector('.calculator__keys');
 const display = document.querySelector('.calculator__display')
+const buttons = document.querySelectorAll("button");
+const expression = document.getElementById("expression");
 
+let expr = [];
+let userPressed = false;
 
+buttons.forEach(function(button) {
 
+    button.onclick = function() {
+        switch (button.textContent) {
+            case "AC":
+                clearAll();
+                break;
 
-keys.addEventListener('click', e =>{
-    
-    if(e.target.matches('button')){
-        const key = e.target;
-        const action = key.dataset.action;
-        const keyContent = key.textContent
-        const displayedNum = display.textContent
-    }
-    if(!action){
-        if(displayedNum === '0'){
-            display.textContent = keyContent
-        }else {
-            display.textContent = displayedNum + keyContent
+            case ".":
+                insertDecimal();
+                break;
+
+            case "0":
+                insertZero();
+                break;
+
+            case "+":
+            case "-":
+            case "x":
+            case "÷":
+                editExpression(button.textContent);
+                break;
+
+            case "=":
+                result();
+                break;
+        
+            default:
+                insertDigit(button.textContent);
+                break;
         }
     }
-    
-    if (
-        action === 'add' ||
-        action === 'subtract' ||
-        action === 'multiply' ||
-        action === 'divide'
-      ) {
-       key.classList.add('is-depressed')
-      }
-    
-      if (action === 'decimal') {
-        console.log('decimal key!')
-      }
-      if (action === 'clear') {
-        console.log('clear key!')
-      }
-      if (action === 'calculate') {
-        console.log('equal key!')
-      }
-});
+})
 
+function insertDigit(text) {
+    if (userPressed) {
+        display.textContent = ""; 
+        userPressed = false;
+    }
 
-
-
-function add(num1, num2){
-    return num1 + num2;
+    if (display.textContent.includes(".") && display.textContent.split(".")[1] != "") {
+        return;
+    } else if (display.textContent.length > 11) {
+        return;
+    } else if (display.textContent == '0') {
+        display.textContent = "";
+    }
+    display.textContent = display.textContent + text;
 }
 
-function subtract(num1, num2){
-    return num1 - num2;
+function clearAll() {
+    display.textContent = "";
+    expression.textContent = "";
+    userPressed= false;
+    expr = [];
 }
 
-function multiply(num1, num2){
-    return num1 * num2;
+
+function insertDecimal() {
+    if (userPressed) {
+        display.textContent = ""; 
+        userPressed = false;
+    }
+
+    if (display.textContent == "") {
+        display.textContent = "0.";
+    } else if (!display.textContent.includes(".")) {
+        display.textContent = display.textContent + ".";
+    }    
 }
 
-function divide (num1, num2){
-    return num1/num2;
-}
+function insertZero() {
+    if (userPressed) {
+        display.textContent = "";
+        userPressed = false;
+    }
 
-function operate(operator,num1,num2){
-    if(operator === add){
-        return add(num1,num2);
-    }else if( operator === subtract){
-        return subtract(num1,num2);
-    }else if(operator === multiply){
-        return multiply(num1,num2);
-    }else{
-        return divide(num1,num2);
+    if (display.textContent == "0" || display.textContent.includes(".")) {
+        return;
+    } else {
+        insertDigit(0);
     }
 }
+
+
+function editExpression(operator) {
+    operator = operator === "x" ? "*" : operator;
+    operator = operator === "÷" ? "/" : operator;
+    
+    if (userPressed) {
+        expr[expr.length - 1] = operator;
+    } else if (display.textContent != "") {
+        expr.push(display.textContent);
+        expr.push(operator);
+        userPressed = true;
+    }
+    expression.textContent = expr.join(" ");
+}
+
+function result() {
+    if (userPressed) {
+        expr = expr.slice(0, -1);
+    } else {
+        expr.push(display.textContent);
+    }
+
+    let result = eval(expr.join(''));
+
+    if (!Number.isInteger(result)) {
+        result = result.toFixed(1);
+    }
+
+    display.textContent = result;
+    expression.textContent = expr.join(" ") + " =";
+    userPressed = false;
+    expr = [];
+}
+
+
+
